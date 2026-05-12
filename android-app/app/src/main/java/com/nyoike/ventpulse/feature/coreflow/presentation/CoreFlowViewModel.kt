@@ -2,6 +2,7 @@ package com.nyoike.ventpulse.feature.coreflow.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nyoike.ventpulse.core.data.session.SessionPreferences
 import com.nyoike.ventpulse.feature.coreflow.domain.Community
 import com.nyoike.ventpulse.feature.coreflow.domain.CoreFlowRepository
 import com.nyoike.ventpulse.feature.coreflow.domain.Mood
@@ -17,7 +18,8 @@ import kotlinx.coroutines.launch
 
 class CoreFlowViewModel(
     private val coreFlowRepository: CoreFlowRepository,
-    private val identityRepository: AnonymousIdentityRepository
+    private val identityRepository: AnonymousIdentityRepository,
+    private val sessionPreferences: SessionPreferences
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CoreFlowState())
@@ -48,6 +50,7 @@ class CoreFlowViewModel(
         viewModelScope.launch {
             identity = identityRepository.getOrCreateIdentity()
             coreFlowRepository.syncCommunities()
+            _state.update { it.copy(hasCheckedInToday = sessionPreferences.hasCheckedInToday()) }
         }
         loadJob = viewModelScope.launch {
             coreFlowRepository.observeCommunities().collect { communities ->
@@ -55,7 +58,8 @@ class CoreFlowViewModel(
                 _state.update {
                     it.copy(
                         communities = communities,
-                        selectedCommunity = selected
+                        selectedCommunity = selected,
+                        hasCheckedInToday = it.hasCheckedInToday
                     )
                 }
             }
@@ -93,14 +97,9 @@ class CoreFlowViewModel(
                     mood = _state.value.selectedMood,
                     intensity = _state.value.intensity
                 )
+                sessionPreferences.saveMoodCheckInForToday()
             }
-            _state.update { it.copy(isSaving = false) }
-            _events.send(
-                CoreFlowEvent.NavigateToVentWriting(
-                    moodId = _state.value.selectedMood.id,
-                    communityId = community.id
-                )
-            )
+            _state.update { it.copy(isSaving = false, hasCheckedInToday = true) }
         }
     }
 

@@ -49,33 +49,38 @@ fun ProfileRoot(
     }
 
     CoreFlowBackground(modifier = Modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 28.dp)
-        ) {
-            Spacer(modifier = Modifier.height(18.dp))
-            Text(
-                text = "Expert Support",
-                style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = "Connect with trained professionals when you need extra support",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            AnonymousProfileCard(communityName = state.selectedCommunity?.name ?: "Your community")
-            CrisisSupportCard()
-            state.experts.forEach { expert ->
-                ExpertCard(expert = expert)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 28.dp)
+                    .padding(bottom = 104.dp)
+            ) {
+                Spacer(modifier = Modifier.height(18.dp))
+                Text(
+                    text = "Expert Support",
+                    style = MaterialTheme.typography.displayMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "Connect with trained professionals when you need extra support",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                AnonymousProfileCard(communityName = state.selectedCommunity?.name ?: "Your community")
+                CrisisSupportCard()
+                state.experts.forEach { expert ->
+                    ExpertCard(expert = expert)
+                }
             }
             SoftBottomNavigation(
                 selected = "Profile",
                 onNavigate = onNavigate,
-                modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 24.dp, vertical = 18.dp)
             )
         }
     }

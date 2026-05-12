@@ -55,7 +55,6 @@ fun VentWritingRoot(
     moodId: String,
     communityId: String,
     onSaved: () -> Unit,
-    onNavigate: (String) -> Unit,
     viewModel: CoreFlowViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -77,8 +76,7 @@ fun VentWritingRoot(
         ventText = state.ventText,
         isSaving = state.isSaving,
         onVentTextChanged = { viewModel.onAction(CoreFlowAction.ChangeVentText(it)) },
-        onSave = { viewModel.onAction(CoreFlowAction.SaveVent) },
-        onNavigate = onNavigate
+        onSave = { viewModel.onAction(CoreFlowAction.SaveVent) }
     )
 }
 
@@ -154,8 +152,7 @@ private fun VentWritingScreen(
     ventText: String,
     isSaving: Boolean,
     onVentTextChanged: (String) -> Unit,
-    onSave: () -> Unit,
-    onNavigate: (String) -> Unit
+    onSave: () -> Unit
 ) {
     CoreFlowBackground(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -229,11 +226,6 @@ private fun VentWritingScreen(
                 text = if (isSaving) "Saving..." else "Save anonymous vent",
                 onClick = onSave,
                 enabled = !isSaving
-            )
-            SoftBottomNavigation(
-                selected = "Vent",
-                onNavigate = onNavigate,
-                modifier = Modifier.padding(top = 18.dp)
             )
         }
     }

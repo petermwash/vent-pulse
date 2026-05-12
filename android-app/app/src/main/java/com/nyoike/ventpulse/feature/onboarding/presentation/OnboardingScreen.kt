@@ -29,10 +29,12 @@ import com.nyoike.ventpulse.feature.coreflow.presentation.CoreFlowBackground
 import com.nyoike.ventpulse.feature.coreflow.presentation.PrimaryPulseButton
 import com.nyoike.ventpulse.ui.theme.BrandPurple
 import com.nyoike.ventpulse.ui.theme.MintCalm
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun OnboardingRoot(
-    onFinish: () -> Unit
+    onFinish: () -> Unit,
+    viewModel: OnboardingViewModel = koinViewModel()
 ) {
     var step by remember { mutableIntStateOf(0) }
     val pages = onboardingPages
@@ -92,7 +94,7 @@ fun OnboardingRoot(
                 text = if (step == pages.lastIndex) "Choose my community" else "Continue",
                 onClick = {
                     if (step == pages.lastIndex) {
-                        onFinish()
+                        viewModel.completeOnboarding(onFinish)
                     } else {
                         step += 1
                     }

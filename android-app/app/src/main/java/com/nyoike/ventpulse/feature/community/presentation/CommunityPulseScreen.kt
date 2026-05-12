@@ -49,54 +49,59 @@ fun CommunityFeedRoot(
     }
 
     CoreFlowBackground(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(22.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 28.dp)
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(18.dp))
-                Text(
-                    text = "Community Pulse",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
-                    text = "You're not alone in what you feel",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                state.selectedCommunity?.let {
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(22.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 28.dp)
+                    .padding(bottom = 104.dp)
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(18.dp))
                     Text(
-                        text = it.name,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = BrandPurple,
-                        modifier = Modifier.padding(top = 10.dp)
+                        text = "Community Pulse",
+                        style = MaterialTheme.typography.displayMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = "You're not alone in what you feel",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    state.selectedCommunity?.let {
+                        Text(
+                            text = it.name,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = BrandPurple,
+                            modifier = Modifier.padding(top = 10.dp)
+                        )
+                    }
+                }
+                items(state.feed, key = { it.id }) { vent ->
+                    VentCard(
+                        vent = vent,
+                        onReact = { viewModel.onAction(CommunityPulseAction.ReactToVent(vent.id)) },
+                        onReport = { viewModel.onAction(CommunityPulseAction.ReportVent(vent.id)) }
+                    )
+                }
+                item {
+                    Text(
+                        text = state.message ?: "These are real feelings from people in your community",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 18.dp)
                     )
                 }
             }
-            items(state.feed, key = { it.id }) { vent ->
-                VentCard(
-                    vent = vent,
-                    onReact = { viewModel.onAction(CommunityPulseAction.ReactToVent(vent.id)) },
-                    onReport = { viewModel.onAction(CommunityPulseAction.ReportVent(vent.id)) }
-                )
-            }
-            item {
-                Text(
-                    text = state.message ?: "These are real feelings from people in your community",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 18.dp)
-                )
-                SoftBottomNavigation(
-                    selected = "Community",
-                    onNavigate = onNavigate,
-                    modifier = Modifier.padding(top = 16.dp, bottom = 18.dp)
-                )
-            }
+            SoftBottomNavigation(
+                selected = "Community",
+                onNavigate = onNavigate,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 24.dp, vertical = 18.dp)
+            )
         }
     }
 }

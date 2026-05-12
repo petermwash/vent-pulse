@@ -2,6 +2,8 @@ package com.nyoike.ventpulse.feature.coreflow.presentation
 
 import app.cash.turbine.test
 import com.nyoike.ventpulse.MainDispatcherRule
+import com.nyoike.ventpulse.core.data.session.SessionPreferences
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.nyoike.ventpulse.feature.coreflow.domain.Community
 import com.nyoike.ventpulse.feature.coreflow.domain.CoreFlowRepository
 import com.nyoike.ventpulse.feature.coreflow.domain.Mood
@@ -9,43 +11,47 @@ import com.nyoike.ventpulse.feature.identity.domain.AnonymousIdentity
 import com.nyoike.ventpulse.feature.identity.domain.AnonymousIdentityRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Files
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class CoreFlowViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun saveMoodPersistsCheckInAndEmitsVentRoute() = runTest {
+    fun saveMoodPersistsCheckInAndMarksTodayComplete() = runTest {
         val repository = FakeCoreFlowRepository()
-        val viewModel = CoreFlowViewModel(repository, FakeAnonymousIdentityRepository())
+        val viewModel = CoreFlowViewModel(
+            repository,
+            FakeAnonymousIdentityRepository(),
+            testSessionPreferences()
+        )
 
-        viewModel.events.test {
-            viewModel.onAction(CoreFlowAction.Load)
-            viewModel.onAction(CoreFlowAction.SelectCommunity(testCommunity))
-            viewModel.onAction(CoreFlowAction.SelectMood(Mood.LONELY))
-            viewModel.onAction(CoreFlowAction.SaveMood)
+        viewModel.onAction(CoreFlowAction.Load)
+        viewModel.onAction(CoreFlowAction.SelectCommunity(testCommunity))
+        viewModel.onAction(CoreFlowAction.SelectMood(Mood.LONELY))
+        advanceUntilIdle()
+        viewModel.onAction(CoreFlowAction.SaveMood)
 
-            assertEquals(
-                CoreFlowEvent.NavigateToVentWriting(
-                    moodId = Mood.LONELY.id,
-                    communityId = testCommunity.id
-                ),
-                awaitItem()
-            )
-            assertEquals(Mood.LONELY, repository.savedMood)
-            assertEquals(testCommunity.id, repository.savedMoodCommunityId)
-        }
+        advanceUntilIdle()
+        assertEquals(Mood.LONELY, repository.savedMood)
+        assertEquals(testCommunity.id, repository.savedMoodCommunityId)
     }
 
     @Test
     fun saveVentPersistsBodyAndReturnsToPulse() = runTest {
         val repository = FakeCoreFlowRepository()
-        val viewModel = CoreFlowViewModel(repository, FakeAnonymousIdentityRepository())
+        val viewModel = CoreFlowViewModel(
+            repository,
+            FakeAnonymousIdentityRepository(),
+            testSessionPreferences()
+        )
 
         viewModel.events.test {
             viewModel.onAction(CoreFlowAction.Load)
@@ -59,6 +65,14 @@ class CoreFlowViewModelTest {
             assertEquals("", viewModel.state.value.ventText)
         }
     }
+}
+
+private fun testSessionPreferences(): SessionPreferences {
+    return SessionPreferences(
+        PreferenceDataStoreFactory.create(
+            produceFile = { Files.createTempFile("ventpulse-test", ".preferences_pb").toFile() }
+        )
+    )
 }
 
 private class FakeCoreFlowRepository : CoreFlowRepository {

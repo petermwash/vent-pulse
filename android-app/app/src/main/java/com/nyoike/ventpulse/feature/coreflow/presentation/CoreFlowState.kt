@@ -8,6 +8,7 @@ data class CoreFlowState(
     val selectedCommunity: Community? = null,
     val selectedMood: Mood = Mood.CALM,
     val intensity: Int = 4,
+    val hasCheckedInToday: Boolean = false,
     val ventText: String = "",
     val isSaving: Boolean = false,
     val message: String? = null

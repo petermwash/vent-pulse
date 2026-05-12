@@ -29,7 +29,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SplashRoot(
-    onIdentityReady: () -> Unit,
+    onIdentityReady: (LaunchDestination) -> Unit,
     viewModel: IdentityBootstrapViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -40,7 +40,7 @@ fun SplashRoot(
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
-            IdentityBootstrapEvent.IdentityReady -> onIdentityReady()
+            is IdentityBootstrapEvent.IdentityReady -> onIdentityReady(event.destination)
         }
     }
 
