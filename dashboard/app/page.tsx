@@ -1,14 +1,16 @@
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import {
-  createSupabaseServerClient,
-  hasSupabasePublicEnv,
-} from "@/lib/supabase/server";
+import { loadDashboardData } from "@/components/dashboard/dashboard-supabase-data";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const supabaseReady = hasSupabasePublicEnv();
-  const supabase = supabaseReady ? createSupabaseServerClient() : null;
+  const dashboardData = await loadDashboardData();
 
-  void supabase;
-
-  return <DashboardShell supabaseReady={supabaseReady} />;
+  return (
+    <DashboardShell
+      communities={dashboardData.communities}
+      dataMode={dashboardData.mode}
+      dataWarnings={dashboardData.warnings}
+    />
+  );
 }

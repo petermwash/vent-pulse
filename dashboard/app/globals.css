@@ -31,7 +31,8 @@
 
 body {
   min-height: 100vh;
-  background: var(--background);
+  background:
+    linear-gradient(180deg, #fefcff 0%, #faf8ff 54%, #f7f4ff 100%);
   color: var(--foreground);
   font-family: var(--font-plus-jakarta-sans), Inter, "DM Sans", sans-serif;
 }
@@ -42,8 +43,6 @@ body {
 
 html {
   background:
-    radial-gradient(circle at top left, rgba(184, 168, 255, 0.26), transparent 34%),
-    radial-gradient(circle at 80% 18%, rgba(143, 214, 255, 0.18), transparent 22%),
     linear-gradient(180deg, #fefcff 0%, #faf8ff 100%);
 }
 
@@ -62,10 +61,12 @@ button {
 
 .glass-panel {
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(247, 243, 255, 0.74));
-  box-shadow: var(--shadow-soft);
-  border: 1px solid rgba(184, 168, 255, 0.18);
-  backdrop-filter: blur(18px);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(247, 243, 255, 0.7));
+  box-shadow:
+    0 26px 70px rgba(139, 124, 246, 0.11),
+    0 8px 24px rgba(45, 42, 74, 0.05);
+  border: 1px solid rgba(184, 168, 255, 0.16);
+  backdrop-filter: blur(22px);
 }
 
 .soft-ring {
@@ -100,7 +101,6 @@ button {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.85), transparent 22%),
-    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.34), transparent 20%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.12));
   mix-blend-mode: screen;
 }
