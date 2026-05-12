@@ -3,16 +3,18 @@ package com.nyoike.ventpulse.app
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.nyoike.ventpulse.feature.community.presentation.CommunityRoot
 import com.nyoike.ventpulse.feature.connect.presentation.ConnectRoot
 import com.nyoike.ventpulse.feature.onboarding.presentation.OnboardingRoot
 import com.nyoike.ventpulse.feature.profile.presentation.ProfileRoot
 import com.nyoike.ventpulse.feature.pulse.presentation.PulseRoot
-import com.nyoike.ventpulse.feature.safespace.presentation.SafeSpaceRoot
+import com.nyoike.ventpulse.feature.safespace.presentation.VentWritingRoot
 import com.nyoike.ventpulse.feature.identity.presentation.SplashRoot
 
 @Composable
@@ -37,23 +39,54 @@ fun VentPulseApp() {
             composable<OnboardingRoute> {
                 OnboardingRoot(
                     onFinish = {
-                        navController.navigate(PulseRoute) {
+                        navController.navigate(CommunityRoute) {
                             popUpTo<OnboardingRoute> { inclusive = true }
                         }
                     }
                 )
             }
             composable<PulseRoute> {
-                PulseRoot()
+                PulseRoot(
+                    onNavigateToVent = { moodId, communityId ->
+                        navController.navigate(
+                            VentWritingRoute(
+                                moodId = moodId,
+                                communityId = communityId
+                            )
+                        )
+                    }
+                )
             }
             composable<CommunityRoute> {
-                CommunityRoot()
+                CommunityRoot(
+                    onCommunitySelected = {
+                        navController.navigate(PulseRoute) {
+                            popUpTo<CommunityRoute> { inclusive = true }
+                        }
+                    }
+                )
             }
             composable<ConnectRoute> {
                 ConnectRoot()
             }
             composable<SafeSpaceRoute> {
-                SafeSpaceRoot()
+                LaunchedEffect(Unit) {
+                    navController.navigate(PulseRoute) {
+                        popUpTo<SafeSpaceRoute> { inclusive = true }
+                    }
+                }
+            }
+            composable<VentWritingRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<VentWritingRoute>()
+                VentWritingRoot(
+                    moodId = route.moodId,
+                    communityId = route.communityId,
+                    onSaved = {
+                        navController.navigate(PulseRoute) {
+                            popUpTo<VentWritingRoute> { inclusive = true }
+                        }
+                    }
+                )
             }
             composable<ProfileRoute> {
                 ProfileRoot()

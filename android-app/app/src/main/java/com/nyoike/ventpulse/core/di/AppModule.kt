@@ -35,4 +35,5 @@ val appModule = module {
         ).build()
     }
     single { get<VentPulseDatabase>().communityDao() }
+    single { get<VentPulseDatabase>().coreFlowDao() }
 }
