@@ -1,6 +1,7 @@
 package com.nyoike.ventpulse.feature.coreflow.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -121,7 +122,8 @@ fun MoodBlob(
 @Composable
 fun SoftBottomNavigation(
     selected: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigate: (String) -> Unit = {}
 ) {
     Surface(
         shape = RoundedCornerShape(999.dp),
@@ -135,7 +137,7 @@ fun SoftBottomNavigation(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
-            listOf("Pulse", "Community", "Vent", "Profile").forEach { item ->
+            listOf("Pulse", "Community", "Connect", "Safe Space", "Profile").forEach { item ->
                 val isSelected = item == selected
                 Text(
                     text = item,
@@ -143,8 +145,9 @@ fun SoftBottomNavigation(
                     color = if (isSelected) BrandPurple else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
+                        .clickable { onNavigate(item) }
                         .background(if (isSelected) BrandPurple.copy(alpha = 0.12f) else Color.Transparent)
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .padding(horizontal = 10.dp, vertical = 8.dp)
                 )
             }
         }

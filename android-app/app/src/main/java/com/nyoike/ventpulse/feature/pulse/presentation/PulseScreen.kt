@@ -41,6 +41,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun PulseRoot(
     onNavigateToVent: (moodId: String, communityId: String) -> Unit,
+    onNavigate: (String) -> Unit,
     viewModel: CoreFlowViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -60,7 +61,8 @@ fun PulseRoot(
         selectedMood = state.selectedMood,
         isSaving = state.isSaving,
         onSelectMood = { viewModel.onAction(CoreFlowAction.SelectMood(it)) },
-        onSaveMood = { viewModel.onAction(CoreFlowAction.SaveMood) }
+        onSaveMood = { viewModel.onAction(CoreFlowAction.SaveMood) },
+        onNavigate = onNavigate
     )
 }
 
@@ -69,7 +71,8 @@ private fun PulseScreen(
     selectedMood: Mood,
     isSaving: Boolean,
     onSelectMood: (Mood) -> Unit,
-    onSaveMood: () -> Unit
+    onSaveMood: () -> Unit,
+    onNavigate: (String) -> Unit
 ) {
     CoreFlowBackground(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -124,6 +127,7 @@ private fun PulseScreen(
             )
             SoftBottomNavigation(
                 selected = "Pulse",
+                onNavigate = onNavigate,
                 modifier = Modifier.padding(top = 18.dp)
             )
         }

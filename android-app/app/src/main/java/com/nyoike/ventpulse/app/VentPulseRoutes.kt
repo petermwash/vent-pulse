@@ -12,6 +12,9 @@ data object OnboardingRoute
 data object PulseRoute
 
 @Serializable
+data object CommunitySelectionRoute
+
+@Serializable
 data object CommunityRoute
 
 @Serializable
