@@ -21,4 +21,10 @@ data object ConnectRoute
 data object SafeSpaceRoute
 
 @Serializable
+data class VentWritingRoute(
+    val moodId: String,
+    val communityId: String
+)
+
+@Serializable
 data object ProfileRoute
