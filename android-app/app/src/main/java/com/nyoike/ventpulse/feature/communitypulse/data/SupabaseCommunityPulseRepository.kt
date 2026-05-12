@@ -18,8 +18,8 @@ class SupabaseCommunityPulseRepository(
 
     override suspend fun loadFeed(communityId: String, profileId: String): List<CommunityVent> {
         val client = supabaseClientProvider.client ?: return fallbackFeed
-        ensureRemoteProfile(profileId = profileId, communityId = communityId)
         return runCatching {
+            ensureRemoteProfile(profileId = profileId, communityId = communityId)
             val vents = client.from("vents")
                 .select(
                     columns = Columns.raw(
@@ -59,8 +59,8 @@ class SupabaseCommunityPulseRepository(
 
     override suspend fun loadMoodSummary(communityId: String): List<MoodShare> {
         val client = supabaseClientProvider.client ?: return fallbackMoodShares
-        ensureAnonymousSession()
         return runCatching {
+            ensureAnonymousSession()
             val checkIns = client.from("mood_checkins")
                 .select(columns = Columns.list("mood")) {
                     filter { eq("community_id", communityId) }
