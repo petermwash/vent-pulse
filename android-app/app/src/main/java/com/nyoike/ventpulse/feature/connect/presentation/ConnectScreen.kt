@@ -22,6 +22,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -63,6 +64,12 @@ fun ConnectRoot(
 
     LaunchedEffect(Unit) {
         viewModel.onAction(MatchingAction.Load)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.onAction(MatchingAction.ScreenHidden)
+        }
     }
 
     ConnectScreen(
@@ -107,67 +114,72 @@ private fun MatchingContent(
     onNavigate: (String) -> Unit,
     onAction: (MatchingAction) -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 28.dp)
-    ) {
-        Spacer(modifier = Modifier.height(110.dp))
-        Box(
-            modifier = Modifier.size(282.dp),
-            contentAlignment = Alignment.Center
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 28.dp)
+                .padding(bottom = 104.dp)
         ) {
-            MoodCircle(
-                emoji = "😟",
-                color = SadMood,
-                modifier = Modifier.align(Alignment.CenterStart)
-            )
+            Spacer(modifier = Modifier.height(110.dp))
             Box(
-                modifier = Modifier
-                    .height(8.dp)
-                    .fillMaxWidth(0.42f)
-                    .background(BrandPurple.copy(alpha = 0.16f))
-            )
-            MoodCircle(
-                emoji = "😌",
-                color = CalmMood,
-                modifier = Modifier.align(Alignment.CenterEnd)
-            )
-        }
-        Text(
-            text = "Finding someone who understands...",
-            style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 32.dp)
-        )
-        Text(
-            text = "We're connecting you with someone who feels similarly. This is a safe, anonymous space.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 14.dp)
-        )
-        LoadingDots(modifier = Modifier.padding(top = 54.dp))
-        state.message?.let {
+                modifier = Modifier.size(282.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                MoodCircle(
+                    emoji = "😟",
+                    color = SadMood,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                )
+                Box(
+                    modifier = Modifier
+                        .height(8.dp)
+                        .fillMaxWidth(0.42f)
+                        .background(BrandPurple.copy(alpha = 0.16f))
+                )
+                MoodCircle(
+                    emoji = "😌",
+                    color = CalmMood,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                )
+            }
             Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-                color = BrandPurple,
+                text = "Finding someone who understands...",
+                style = MaterialTheme.typography.displayMedium,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 22.dp)
+                modifier = Modifier.padding(top = 32.dp)
+            )
+            Text(
+                text = "We're connecting you with someone who feels similarly. This is a safe, anonymous space.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 14.dp)
+            )
+            LoadingDots(modifier = Modifier.padding(top = 54.dp))
+            state.message?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = BrandPurple,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 22.dp)
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            PrimaryPulseButton(
+                text = "Skip to Chat Demo",
+                onClick = { onAction(MatchingAction.SkipToChatDemo) }
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
-        PrimaryPulseButton(
-            text = "Skip to Chat Demo",
-            onClick = { onAction(MatchingAction.SkipToChatDemo) }
-        )
         SoftBottomNavigation(
             selected = "Connect",
             onNavigate = onNavigate,
-            modifier = Modifier.padding(top = 18.dp)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 24.dp, vertical = 18.dp)
         )
     }
 }
@@ -178,46 +190,51 @@ private fun ChatContent(
     onNavigate: (String) -> Unit,
     onAction: (MatchingAction) -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 18.dp, vertical = 20.dp)
-    ) {
-        ChatHeader(
-            partnerAlias = state.match?.partnerAlias ?: "Gentle Orbit",
-            onEnd = { onAction(MatchingAction.EndConversation) },
-            onExpert = { onAction(MatchingAction.RequestExpert) }
-        )
-        state.message?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-                color = BrandPurple,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp)
-            )
-        }
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .padding(top = 8.dp)
+                .fillMaxSize()
+                .padding(horizontal = 18.dp, vertical = 20.dp)
+                .padding(bottom = 104.dp)
         ) {
-            items(state.messages, key = { it.id }) { message ->
-                ChatBubble(
-                    message = message,
-                    onReport = { onAction(MatchingAction.ReportMessage(message.id)) }
+            ChatHeader(
+                partnerAlias = state.match?.partnerAlias ?: "Gentle Orbit",
+                onEnd = { onAction(MatchingAction.EndConversation) },
+                onExpert = { onAction(MatchingAction.RequestExpert) }
+            )
+            state.message?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = BrandPurple,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp)
                 )
             }
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 8.dp)
+            ) {
+                items(state.messages, key = { it.id }) { message ->
+                    ChatBubble(
+                        message = message,
+                        onReport = { onAction(MatchingAction.ReportMessage(message.id)) }
+                    )
+                }
+            }
+            ChatComposer(
+                value = state.draft,
+                onValueChange = { onAction(MatchingAction.ChangeDraft(it)) },
+                onSend = { onAction(MatchingAction.SendMessage) }
+            )
         }
-        ChatComposer(
-            value = state.draft,
-            onValueChange = { onAction(MatchingAction.ChangeDraft(it)) },
-            onSend = { onAction(MatchingAction.SendMessage) }
-        )
         SoftBottomNavigation(
             selected = "Connect",
             onNavigate = onNavigate,
-            modifier = Modifier.padding(top = 14.dp)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 24.dp, vertical = 18.dp)
         )
     }
 }
@@ -228,41 +245,46 @@ private fun EndedContent(
     onNavigate: (String) -> Unit,
     onAction: (MatchingAction) -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 28.dp)
-    ) {
-        Spacer(modifier = Modifier.height(120.dp))
-        Text(text = "🫶", fontSize = 72.sp)
-        Text(
-            text = "Conversation ended",
-            style = MaterialTheme.typography.displayMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 22.dp)
-        )
-        Text(
-            text = state.message ?: "You stayed in control of your safe space.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 14.dp)
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        PrimaryPulseButton(
-            text = "Start New Match",
-            onClick = { onAction(MatchingAction.StartMatching) }
-        )
-        PrimaryPulseButton(
-            text = "Request Expert Support",
-            onClick = { onAction(MatchingAction.RequestExpert) },
-            modifier = Modifier.padding(top = 12.dp)
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 28.dp)
+                .padding(bottom = 104.dp)
+        ) {
+            Spacer(modifier = Modifier.height(120.dp))
+            Text(text = "🫶", fontSize = 72.sp)
+            Text(
+                text = "Conversation ended",
+                style = MaterialTheme.typography.displayMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 22.dp)
+            )
+            Text(
+                text = state.message ?: "You stayed in control of your safe space.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 14.dp)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            PrimaryPulseButton(
+                text = "Start New Match",
+                onClick = { onAction(MatchingAction.StartMatching) }
+            )
+            PrimaryPulseButton(
+                text = "Request Expert Support",
+                onClick = { onAction(MatchingAction.RequestExpert) },
+                modifier = Modifier.padding(top = 12.dp)
+            )
+        }
         SoftBottomNavigation(
             selected = "Connect",
             onNavigate = onNavigate,
-            modifier = Modifier.padding(top = 18.dp)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 24.dp, vertical = 18.dp)
         )
     }
 }

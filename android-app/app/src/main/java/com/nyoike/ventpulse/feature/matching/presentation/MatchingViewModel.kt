@@ -39,6 +39,7 @@ class MatchingViewModel(
     fun onAction(action: MatchingAction) {
         when (action) {
             MatchingAction.Load -> load()
+            MatchingAction.ScreenHidden -> stopRealtimeObservers()
             MatchingAction.StartMatching -> startMatching()
             MatchingAction.SkipToChatDemo -> skipToDemoChat()
             is MatchingAction.ChangeDraft -> _state.update { it.copy(draft = action.value) }
@@ -199,6 +200,13 @@ class MatchingViewModel(
         }
     }
 
+    private fun stopRealtimeObservers() {
+        matchJob?.cancel()
+        messagesJob?.cancel()
+        matchJob = null
+        messagesJob = null
+    }
+
     private fun resolveSelectedCommunity(communities: List<Community>): Community? {
         val selectedCommunityId = identity?.communityId
         return communities.firstOrNull { it.id == selectedCommunityId }
@@ -208,5 +216,10 @@ class MatchingViewModel(
 
     private fun List<ChatMessage>.visibleOnly(): List<ChatMessage> {
         return filter { it.moderationStatus == "visible" }
+    }
+
+    override fun onCleared() {
+        stopRealtimeObservers()
+        super.onCleared()
     }
 }

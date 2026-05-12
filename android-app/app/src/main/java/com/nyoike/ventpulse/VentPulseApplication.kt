@@ -10,6 +10,7 @@ import com.nyoike.ventpulse.feature.identity.data.identityDataModule
 import com.nyoike.ventpulse.feature.identity.presentation.identityPresentationModule
 import com.nyoike.ventpulse.feature.matching.data.matchingDataModule
 import com.nyoike.ventpulse.feature.matching.presentation.matchingPresentationModule
+import com.nyoike.ventpulse.feature.onboarding.presentation.onboardingPresentationModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -27,7 +28,8 @@ class VentPulseApplication : Application() {
                 identityDataModule,
                 identityPresentationModule,
                 matchingDataModule,
-                matchingPresentationModule
+                matchingPresentationModule,
+                onboardingPresentationModule
             )
         }
     }

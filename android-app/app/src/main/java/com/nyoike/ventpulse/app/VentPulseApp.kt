@@ -11,10 +11,10 @@ import androidx.navigation.toRoute
 import com.nyoike.ventpulse.feature.community.presentation.CommunityFeedRoot
 import com.nyoike.ventpulse.feature.community.presentation.CommunityRoot
 import com.nyoike.ventpulse.feature.connect.presentation.ConnectRoot
+import com.nyoike.ventpulse.feature.identity.presentation.LaunchDestination
 import com.nyoike.ventpulse.feature.onboarding.presentation.OnboardingRoot
 import com.nyoike.ventpulse.feature.profile.presentation.ProfileRoot
 import com.nyoike.ventpulse.feature.pulse.presentation.PulseRoot
-import com.nyoike.ventpulse.feature.safespace.presentation.SafeSpaceRoot
 import com.nyoike.ventpulse.feature.safespace.presentation.VentWritingRoot
 import com.nyoike.ventpulse.feature.identity.presentation.SplashRoot
 
@@ -26,7 +26,6 @@ fun VentPulseApp() {
             "Pulse" -> navController.navigate(PulseRoute) { launchSingleTop = true }
             "Community" -> navController.navigate(CommunityRoute) { launchSingleTop = true }
             "Connect" -> navController.navigate(ConnectRoute) { launchSingleTop = true }
-            "Safe Space" -> navController.navigate(SafeSpaceRoute) { launchSingleTop = true }
             "Profile" -> navController.navigate(ProfileRoute) { launchSingleTop = true }
         }
     }
@@ -39,9 +38,17 @@ fun VentPulseApp() {
         ) {
             composable<SplashRoute> {
                 SplashRoot(
-                    onIdentityReady = {
-                        navController.navigate(OnboardingRoute) {
-                            popUpTo<SplashRoute> { inclusive = true }
+                    onIdentityReady = { destination ->
+                        when (destination) {
+                            LaunchDestination.ONBOARDING -> navController.navigate(OnboardingRoute) {
+                                popUpTo<SplashRoute> { inclusive = true }
+                            }
+                            LaunchDestination.COMMUNITY_SELECTION -> navController.navigate(CommunitySelectionRoute) {
+                                popUpTo<SplashRoute> { inclusive = true }
+                            }
+                            LaunchDestination.PULSE -> navController.navigate(PulseRoute) {
+                                popUpTo<SplashRoute> { inclusive = true }
+                            }
                         }
                     }
                 )
@@ -83,20 +90,16 @@ fun VentPulseApp() {
             composable<ConnectRoute> {
                 ConnectRoot(onNavigate = onNavigate)
             }
-            composable<SafeSpaceRoute> {
-                SafeSpaceRoot(onNavigate = onNavigate)
-            }
             composable<VentWritingRoute> { backStackEntry ->
                 val route = backStackEntry.toRoute<VentWritingRoute>()
                 VentWritingRoot(
                     moodId = route.moodId,
                     communityId = route.communityId,
                     onSaved = {
-                        navController.navigate(CommunityRoute) {
+                        navController.navigate(PulseRoute) {
                             popUpTo<VentWritingRoute> { inclusive = true }
                         }
-                    },
-                    onNavigate = onNavigate
+                    }
                 )
             }
             composable<ProfileRoute> {

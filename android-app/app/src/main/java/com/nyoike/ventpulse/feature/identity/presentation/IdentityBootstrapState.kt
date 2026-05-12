@@ -10,6 +10,12 @@ sealed interface IdentityBootstrapAction {
     data object Start : IdentityBootstrapAction
 }
 
+enum class LaunchDestination {
+    ONBOARDING,
+    COMMUNITY_SELECTION,
+    PULSE
+}
+
 sealed interface IdentityBootstrapEvent {
-    data object IdentityReady : IdentityBootstrapEvent
+    data class IdentityReady(val destination: LaunchDestination) : IdentityBootstrapEvent
 }

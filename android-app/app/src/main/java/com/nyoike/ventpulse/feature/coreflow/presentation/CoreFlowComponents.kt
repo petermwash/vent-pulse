@@ -137,7 +137,7 @@ fun SoftBottomNavigation(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
-            listOf("Pulse", "Community", "Connect", "Safe Space", "Profile").forEach { item ->
+            listOf("Pulse", "Community", "Connect", "Profile").forEach { item ->
                 val isSelected = item == selected
                 Text(
                     text = item,

@@ -22,6 +22,7 @@ enum class MatchingPhase {
 
 sealed interface MatchingAction {
     data object Load : MatchingAction
+    data object ScreenHidden : MatchingAction
     data object StartMatching : MatchingAction
     data object SkipToChatDemo : MatchingAction
     data class ChangeDraft(val value: String) : MatchingAction
