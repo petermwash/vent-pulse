@@ -8,6 +8,8 @@ import com.nyoike.ventpulse.feature.coreflow.data.coreFlowDataModule
 import com.nyoike.ventpulse.feature.coreflow.presentation.coreFlowPresentationModule
 import com.nyoike.ventpulse.feature.identity.data.identityDataModule
 import com.nyoike.ventpulse.feature.identity.presentation.identityPresentationModule
+import com.nyoike.ventpulse.feature.matching.data.matchingDataModule
+import com.nyoike.ventpulse.feature.matching.presentation.matchingPresentationModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -23,7 +25,9 @@ class VentPulseApplication : Application() {
                 coreFlowDataModule,
                 coreFlowPresentationModule,
                 identityDataModule,
-                identityPresentationModule
+                identityPresentationModule,
+                matchingDataModule,
+                matchingPresentationModule
             )
         }
     }
