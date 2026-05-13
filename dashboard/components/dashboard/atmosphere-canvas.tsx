@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { BubbleDatum } from "@/components/dashboard/dashboard-data";
 
@@ -13,16 +13,46 @@ type AtmosphereCanvasProps = {
 type BubbleParticle = BubbleDatum & {
   offsetX: number;
   offsetY: number;
+  fillColor: string;
 };
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
+
+const normalizeBubbles = (bubbles: BubbleDatum[]) => {
+  const groups = new Map<string, BubbleDatum[]>();
+
+  bubbles.forEach((bubble) => {
+    const group = groups.get(bubble.label) ?? [];
+    group.push(bubble);
+    groups.set(bubble.label, group);
+  });
+
+  return Array.from(groups.values()).map((group) => {
+    if (group.length === 1) return group[0];
+
+    const anchor = group.reduce((largest, bubble) =>
+      bubble.size > largest.size ? bubble : largest,
+    );
+    const values = group.map((bubble) => bubble.value);
+    const value = values.every((item) => item === values[0])
+      ? values[0]
+      : values.reduce((total, item) => total + item, 0);
+
+    return {
+      ...anchor,
+      id: `${anchor.id}-normalized`,
+      value,
+    };
+  });
+};
 
 export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [hoveredBubbleId, setHoveredBubbleId] = useState<string | null>(null);
   const shouldReduceMotion = useReducedMotion();
+  const visibleBubbles = useMemo(() => normalizeBubbles(bubbles), [bubbles]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -36,16 +66,16 @@ export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasPr
       return;
     }
 
-    const particles: BubbleParticle[] = bubbles.map((bubble, index) => ({
+    let width = 0;
+    let height = 0;
+    const pixelRatio = window.devicePixelRatio || 1;
+    const rootStyles = getComputedStyle(document.documentElement);
+    const particles: BubbleParticle[] = visibleBubbles.map((bubble, index) => ({
       ...bubble,
+      fillColor: rootStyles.getPropertyValue(bubble.colorVar).trim(),
       offsetX: index * 0.8,
       offsetY: index * 1.4,
     }));
-
-    let width = 0;
-    let height = 0;
-    let animationFrame = 0;
-    const pixelRatio = window.devicePixelRatio || 1;
 
     const resize = () => {
       width = host.clientWidth;
@@ -55,6 +85,7 @@ export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasPr
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      render();
     };
 
     const drawGlow = (
@@ -77,7 +108,7 @@ export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasPr
       context.fill();
     };
 
-    const render = (time: number) => {
+    const render = () => {
       context.clearRect(0, 0, width, height);
 
       const fieldGradient = context.createLinearGradient(0, 0, width, height);
@@ -88,47 +119,32 @@ export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasPr
       context.fillRect(0, 0, width, height);
 
       particles.forEach((particle) => {
-        const driftX =
-          Math.sin(time * 0.00022 + particle.offsetX) * particle.velocityX * width;
-        const driftY =
-          Math.cos(time * 0.00018 + particle.offsetY) * particle.velocityY * height;
+        const driftX = Math.sin(particle.offsetX) * particle.velocityX * width * 0.55;
+        const driftY = Math.cos(particle.offsetY) * particle.velocityY * height * 0.55;
         const x = clamp(particle.x * width + driftX, width * 0.05, width * 0.95);
         const y = clamp(particle.y * height + driftY, height * 0.05, height * 0.95);
-        const radius = Math.max(74, Math.min(width, height) * particle.size * 1.04);
-        const glowRadius = radius * 2;
-        const color = getComputedStyle(document.documentElement)
-          .getPropertyValue(particle.colorVar)
-          .trim();
+        const radius = Math.max(64, Math.min(width, height) * particle.size * 0.95);
+        const glowRadius = radius * 1.65;
 
         drawGlow(
           x,
           y,
           glowRadius,
           particle.glow,
-          `${color}44`,
-          particle.opacity ?? 1,
+          `${particle.fillColor}30`,
+          (particle.opacity ?? 1) * 0.72,
         );
       });
-
-      if (!shouldReduceMotion) {
-        animationFrame = window.requestAnimationFrame(render);
-      }
     };
 
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(host);
-    if (shouldReduceMotion) {
-      render(0);
-    } else {
-      animationFrame = window.requestAnimationFrame(render);
-    }
 
     return () => {
       observer.disconnect();
-      window.cancelAnimationFrame(animationFrame);
     };
-  }, [bubbles, shouldReduceMotion]);
+  }, [visibleBubbles]);
 
   return (
     <div
@@ -138,7 +154,7 @@ export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasPr
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(250,248,255,0.62))]" />
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
       <div className="atmosphere-sheen absolute inset-0" />
-      {bubbles.map((bubble, index) => {
+      {visibleBubbles.map((bubble, index) => {
         const isHovered = hoveredBubbleId === bubble.id;
 
         return (
