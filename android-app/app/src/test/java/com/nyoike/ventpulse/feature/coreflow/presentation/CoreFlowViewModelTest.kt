@@ -2,8 +2,10 @@ package com.nyoike.ventpulse.feature.coreflow.presentation
 
 import app.cash.turbine.test
 import com.nyoike.ventpulse.MainDispatcherRule
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
 import com.nyoike.ventpulse.core.data.session.SessionPreferences
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.nyoike.ventpulse.feature.coreflow.domain.Community
 import com.nyoike.ventpulse.feature.coreflow.domain.CoreFlowRepository
 import com.nyoike.ventpulse.feature.coreflow.domain.Mood
@@ -11,12 +13,12 @@ import com.nyoike.ventpulse.feature.identity.domain.AnonymousIdentity
 import com.nyoike.ventpulse.feature.identity.domain.AnonymousIdentityRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class CoreFlowViewModelTest {
@@ -68,11 +70,7 @@ class CoreFlowViewModelTest {
 }
 
 private fun testSessionPreferences(): SessionPreferences {
-    return SessionPreferences(
-        PreferenceDataStoreFactory.create(
-            produceFile = { Files.createTempFile("ventpulse-test", ".preferences_pb").toFile() }
-        )
-    )
+    return FakeSessionPreferences()
 }
 
 private class FakeCoreFlowRepository : CoreFlowRepository {
@@ -128,6 +126,26 @@ private class FakeAnonymousIdentityRepository : AnonymousIdentityRepository {
     override suspend fun updateCommunity(communityId: String) {
         identity = identity.copy(communityId = communityId)
         identities.value = identity
+    }
+}
+
+private class FakeSessionPreferences : SessionPreferences(EmptyPreferencesDataStore) {
+    private var checkedInToday = false
+
+    override val lastMoodCheckInDate: Flow<String?> = flowOf(null)
+
+    override suspend fun saveMoodCheckInForToday() {
+        checkedInToday = true
+    }
+
+    override suspend fun hasCheckedInToday(): Boolean = checkedInToday
+}
+
+private object EmptyPreferencesDataStore : DataStore<Preferences> {
+    override val data: Flow<Preferences> = flowOf(emptyPreferences())
+
+    override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences {
+        return transform(emptyPreferences())
     }
 }
 

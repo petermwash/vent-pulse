@@ -55,6 +55,12 @@ button {
   font: inherit;
 }
 
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid rgba(139, 124, 246, 0.38);
+  outline-offset: 4px;
+}
+
 ::selection {
   background: rgba(139, 124, 246, 0.22);
 }
@@ -103,4 +109,15 @@ button {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.12));
   mix-blend-mode: screen;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

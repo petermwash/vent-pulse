@@ -96,6 +96,7 @@ export function DashboardShell({
               <button
                 key={item.id}
                 type="button"
+                aria-current={isActive ? "page" : undefined}
                 onClick={() =>
                   startTransition(() => {
                     setActiveNav(item.id);
@@ -131,6 +132,9 @@ export function DashboardShell({
 
               <button
                 type="button"
+                aria-expanded={isCommunityPickerOpen}
+                aria-controls="community-picker"
+                aria-label={`Viewing ${selectedCommunity.headingLabel}. Open community selector.`}
                 onClick={() => setCommunityPickerOpen((open) => !open)}
                 className="group flex w-full items-start justify-between gap-3 text-left"
               >
@@ -154,6 +158,7 @@ export function DashboardShell({
               {isCommunityPickerOpen ? (
                 <motion.div
                   key="community-picker"
+                  id="community-picker"
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
@@ -168,6 +173,7 @@ export function DashboardShell({
                         <button
                           key={option.id}
                           type="button"
+                          aria-pressed={isSelected}
                           onClick={() =>
                             startTransition(() => {
                               setSelectedCommunityId(option.id);
@@ -219,6 +225,7 @@ export function DashboardShell({
         initial={{ opacity: 0, x: 26 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.65, ease: "easeOut", delay: 0.16 }}
+        aria-label="Dashboard insight rail"
         className="soft-scrollbar absolute bottom-0 right-4 top-28 z-30 w-[min(25.5rem,calc(100%-2rem))] overflow-y-auto pb-10 sm:right-6"
       >
           <div className="space-y-10">
