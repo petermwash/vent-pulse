@@ -23,6 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -145,6 +150,11 @@ fun SoftBottomNavigation(
                     color = if (isSelected) BrandPurple else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
+                        .semantics {
+                            role = Role.Tab
+                            this.selected = isSelected
+                            contentDescription = "$item tab"
+                        }
                         .clickable { onNavigate(item) }
                         .background(if (isSelected) BrandPurple.copy(alpha = 0.12f) else Color.Transparent)
                         .padding(horizontal = 10.dp, vertical = 8.dp)

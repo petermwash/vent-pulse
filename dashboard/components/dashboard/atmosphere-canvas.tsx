@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 import type { BubbleDatum } from "@/components/dashboard/dashboard-data";
@@ -22,6 +22,7 @@ export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasPr
   const hostRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [hoveredBubbleId, setHoveredBubbleId] = useState<string | null>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const host = hostRef.current;
@@ -109,19 +110,25 @@ export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasPr
         );
       });
 
-      animationFrame = window.requestAnimationFrame(render);
+      if (!shouldReduceMotion) {
+        animationFrame = window.requestAnimationFrame(render);
+      }
     };
 
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(host);
-    animationFrame = window.requestAnimationFrame(render);
+    if (shouldReduceMotion) {
+      render(0);
+    } else {
+      animationFrame = window.requestAnimationFrame(render);
+    }
 
     return () => {
       observer.disconnect();
       window.cancelAnimationFrame(animationFrame);
     };
-  }, [bubbles]);
+  }, [bubbles, shouldReduceMotion]);
 
   return (
     <div
@@ -137,9 +144,14 @@ export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasPr
         return (
           <motion.article
             key={bubble.id}
+            role="img"
+            tabIndex={0}
+            aria-label={`${bubble.label}: ${bubble.value} people`}
             className="group absolute flex aspect-square items-center justify-center rounded-full border-2 text-center backdrop-blur-sm"
             onMouseEnter={() => setHoveredBubbleId(bubble.id)}
             onMouseLeave={() => setHoveredBubbleId(null)}
+            onFocus={() => setHoveredBubbleId(bubble.id)}
+            onBlur={() => setHoveredBubbleId(null)}
             style={{
               left: `${bubble.x * 100}%`,
               top: `${bubble.y * 100}%`,
@@ -155,6 +167,8 @@ export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasPr
             animate={
               isHovered
                 ? { opacity: 1, scale: 1.12, x: 0, y: 0 }
+                : shouldReduceMotion
+                  ? { opacity: bubble.opacity ?? 1, scale: 1, x: 0, y: 0 }
                 : {
                     opacity: [
                       0,
@@ -198,7 +212,7 @@ export function AtmosphereCanvas({ bubbles, className = "" }: AtmosphereCanvasPr
                   }
             }
           >
-            <div className="pointer-events-none absolute bottom-[calc(100%+0.8rem)] left-1/2 z-30 min-w-32 -translate-x-1/2 rounded-full bg-white/90 px-5 py-3 text-center opacity-0 shadow-[0_18px_44px_rgba(45,42,74,0.16)] ring-1 ring-[rgba(184,168,255,0.32)] backdrop-blur-xl transition duration-200 group-hover:translate-y-[-0.2rem] group-hover:opacity-100">
+            <div className="pointer-events-none absolute bottom-[calc(100%+0.8rem)] left-1/2 z-30 min-w-32 -translate-x-1/2 rounded-full bg-white/90 px-5 py-3 text-center opacity-0 shadow-[0_18px_44px_rgba(45,42,74,0.16)] ring-1 ring-[rgba(184,168,255,0.32)] backdrop-blur-xl transition duration-200 group-hover:translate-y-[-0.2rem] group-hover:opacity-100 group-focus-visible:translate-y-[-0.2rem] group-focus-visible:opacity-100">
               <span className="block text-sm font-bold leading-5 text-[var(--foreground)]">
                 {bubble.label}
               </span>

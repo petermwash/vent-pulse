@@ -216,6 +216,11 @@ private fun ChatContent(
                     .weight(1f)
                     .padding(top = 8.dp)
             ) {
+                if (state.messages.isEmpty()) {
+                    item {
+                        EmptyChatCard()
+                    }
+                }
                 items(state.messages, key = { it.id }) { message ->
                     ChatBubble(
                         message = message,
@@ -236,6 +241,37 @@ private fun ChatContent(
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 24.dp, vertical = 18.dp)
         )
+    }
+}
+
+@Composable
+private fun EmptyChatCard() {
+    Surface(
+        shape = RoundedCornerShape(30.dp),
+        color = Color.White.copy(alpha = 0.88f),
+        shadowElevation = 6.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Text(text = "🫶", fontSize = 40.sp)
+            Text(
+                text = "The room is open",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 10.dp)
+            )
+            Text(
+                text = "Start gently, or wait for the other anonymous person to share first.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
     }
 }
 

@@ -86,6 +86,22 @@ fun CommunityFeedRoot(
                         onReport = { viewModel.onAction(CommunityPulseAction.ReportVent(vent.id)) }
                     )
                 }
+                if (state.isLoading && state.feed.isEmpty()) {
+                    item {
+                        GentleStateCard(
+                            title = "Gathering local feelings",
+                            body = "We are preparing the latest community pulse while keeping every voice anonymous."
+                        )
+                    }
+                }
+                if (!state.isLoading && state.feed.isEmpty()) {
+                    item {
+                        GentleStateCard(
+                            title = "This space is quiet right now",
+                            body = "When neighbors share, their vents will appear here with supportive ways to respond."
+                        )
+                    }
+                }
                 item {
                     Text(
                         text = state.message ?: "These are real feelings from people in your community",
@@ -101,6 +117,36 @@ fun CommunityFeedRoot(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 24.dp, vertical = 18.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun GentleStateCard(
+    title: String,
+    body: String
+) {
+    Surface(
+        shape = RoundedCornerShape(34.dp),
+        color = Color.White.copy(alpha = 0.9f),
+        tonalElevation = 0.dp,
+        shadowElevation = 8.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
