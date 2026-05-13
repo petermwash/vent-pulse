@@ -2,6 +2,7 @@ package com.nyoike.ventpulse.feature.safespace.presentation
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -55,6 +56,7 @@ fun VentWritingRoot(
     moodId: String,
     communityId: String,
     onSaved: () -> Unit,
+    onSkip: () -> Unit,
     viewModel: CoreFlowViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -76,7 +78,8 @@ fun VentWritingRoot(
         ventText = state.ventText,
         isSaving = state.isSaving,
         onVentTextChanged = { viewModel.onAction(CoreFlowAction.ChangeVentText(it)) },
-        onSave = { viewModel.onAction(CoreFlowAction.SaveVent) }
+        onSave = { viewModel.onAction(CoreFlowAction.SaveVent) },
+        onSkip = onSkip
     )
 }
 
@@ -152,7 +155,8 @@ private fun VentWritingScreen(
     ventText: String,
     isSaving: Boolean,
     onVentTextChanged: (String) -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    onSkip: () -> Unit
 ) {
     CoreFlowBackground(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -181,7 +185,7 @@ private fun VentWritingScreen(
                 modifier = Modifier.padding(top = 24.dp)
             )
             Text(
-                text = "Write freely. It posts anonymously to your selected community pulse.",
+                text = "Optionally share why you feel this way. You can skip and keep only the pulse check-in.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -223,9 +227,18 @@ private fun VentWritingScreen(
             }
             Spacer(modifier = Modifier.weight(1f))
             PrimaryPulseButton(
-                text = if (isSaving) "Saving..." else "Save anonymous vent",
+                text = if (isSaving) "Sharing..." else "Share anonymously",
                 onClick = onSave,
                 enabled = !isSaving
+            )
+            Text(
+                text = "Skip for now",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(top = 18.dp, bottom = 6.dp)
+                    .clickable(onClick = onSkip)
+                    .padding(horizontal = 18.dp, vertical = 10.dp)
             )
         }
     }

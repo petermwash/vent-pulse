@@ -1,7 +1,12 @@
 package com.nyoike.ventpulse.feature.pulse.presentation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,12 +29,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +56,7 @@ import com.nyoike.ventpulse.feature.coreflow.presentation.MoodBlob
 import com.nyoike.ventpulse.feature.coreflow.presentation.PrimaryPulseButton
 import com.nyoike.ventpulse.feature.coreflow.presentation.SoftBottomNavigation
 import com.nyoike.ventpulse.feature.coreflow.presentation.color
+import com.nyoike.ventpulse.feature.coreflow.presentation.gentleBreathingFloat
 import com.nyoike.ventpulse.ui.theme.BrandPurple
 import com.nyoike.ventpulse.ui.theme.SecondaryBackground
 import kotlinx.coroutines.flow.collectLatest
@@ -60,6 +71,7 @@ fun PulseRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val communityState by communityPulseViewModel.state.collectAsStateWithLifecycle()
+    var isAddingPulse by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.onAction(CoreFlowAction.Load)
@@ -74,20 +86,20 @@ fun PulseRoot(
     androidx.compose.runtime.LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                is CoreFlowEvent.NavigateToVentWriting -> onNavigateToVent(event.moodId, event.communityId)
+                is CoreFlowEvent.NavigateToVentWriting -> {
+                    isAddingPulse = false
+                    onNavigateToVent(event.moodId, event.communityId)
+                }
                 CoreFlowEvent.NavigateToPulse -> Unit
             }
         }
     }
 
-    if (state.hasCheckedInToday) {
+    if (state.hasCheckedInToday && !isAddingPulse) {
         EmotionalPulseScreen(
             shares = communityState.moodShares,
             message = communityState.message,
-            onShareAnonymously = {
-                val communityId = state.selectedCommunity?.id ?: return@EmotionalPulseScreen
-                onNavigateToVent(state.selectedMood.id, communityId)
-            },
+            onAddPulse = { isAddingPulse = true },
             onNavigate = onNavigate
         )
     } else {
@@ -200,7 +212,7 @@ private fun PulseCheckInScreen(
 private fun EmotionalPulseScreen(
     shares: List<MoodShare>,
     message: String?,
-    onShareAnonymously: () -> Unit,
+    onAddPulse: () -> Unit,
     onNavigate: (String) -> Unit
 ) {
     val visibleShares = shares.ifEmpty {
@@ -261,11 +273,26 @@ private fun EmotionalPulseScreen(
                         modifier = Modifier.padding(24.dp)
                     )
                 }
-                PrimaryPulseButton(
-                    text = "Share anonymously",
-                    onClick = onShareAnonymously,
-                    modifier = Modifier.padding(top = 22.dp)
-                )
+            }
+            Surface(
+                onClick = onAddPulse,
+                shape = CircleShape,
+                color = BrandPurple,
+                tonalElevation = 0.dp,
+                shadowElevation = 12.dp,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 24.dp, bottom = 104.dp)
+                    .size(62.dp)
+                    .semantics { contentDescription = "Register another pulse check-in" }
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "+",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White
+                    )
+                }
             }
             SoftBottomNavigation(
                 selected = "Pulse",
@@ -286,16 +313,37 @@ private fun MoodSelector(
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
     ) {
         Mood.entries.forEach { mood ->
+            val isSelected = mood == selectedMood
+            val bubbleSize by animateDpAsState(
+                targetValue = if (isSelected) 62.dp else 50.dp,
+                animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing),
+                label = "${mood.id} selector size"
+            )
+            val colorAlpha by animateFloatAsState(
+                targetValue = if (isSelected) 0.95f else 0.38f,
+                animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing),
+                label = "${mood.id} selector alpha"
+            )
             Surface(
                 onClick = { onSelectMood(mood) },
                 shape = CircleShape,
-                color = mood.color.copy(alpha = if (mood == selectedMood) 0.95f else 0.38f),
+                color = mood.color.copy(alpha = colorAlpha),
                 tonalElevation = 0.dp,
-                shadowElevation = if (mood == selectedMood) 8.dp else 0.dp,
-                modifier = Modifier.size(if (mood == selectedMood) 62.dp else 50.dp)
+                shadowElevation = if (isSelected) 8.dp else 0.dp,
+                modifier = Modifier
+                    .then(
+                        if (isSelected) {
+                            Modifier.gentleBreathingFloat(amplitudeY = 3.dp, scaleRange = 0.015f)
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .size(bubbleSize)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(text = mood.emoji, style = MaterialTheme.typography.titleMedium)
@@ -310,6 +358,16 @@ private fun PulseDonut(
     shares: List<MoodShare>,
     modifier: Modifier = Modifier
 ) {
+    var revealed by remember(shares) { mutableStateOf(false) }
+    LaunchedEffect(shares) {
+        revealed = true
+    }
+    val chartProgress by animateFloatAsState(
+        targetValue = if (revealed) 1f else 0f,
+        animationSpec = tween(durationMillis = 1100, easing = FastOutSlowInEasing),
+        label = "pulse donut progress"
+    )
+
     Surface(
         shape = RoundedCornerShape(36.dp),
         color = SecondaryBackground.copy(alpha = 0.58f),
@@ -326,7 +384,7 @@ private fun PulseDonut(
             Canvas(modifier = Modifier.size(190.dp)) {
                 var startAngle = -90f
                 shares.forEach { share ->
-                    val sweep = (share.percentage / 100f) * 360f
+                    val sweep = (share.percentage / 100f) * 360f * chartProgress
                     drawArc(
                         color = share.mood.color,
                         startAngle = startAngle,
@@ -358,6 +416,17 @@ private fun MoodShareRow(
     share: MoodShare,
     modifier: Modifier = Modifier
 ) {
+    var revealed by remember(share.mood, share.percentage, share.count) { mutableStateOf(false) }
+    LaunchedEffect(share.mood, share.percentage, share.count) {
+        revealed = true
+    }
+    val rowProgress by animateFloatAsState(
+        targetValue = if (revealed) share.percentage / 100f else 0f,
+        animationSpec = tween(durationMillis = 820, easing = FastOutSlowInEasing),
+        label = "${share.mood.id} row progress"
+    )
+    val percentageValue = (rowProgress * 100).toInt().coerceAtMost(share.percentage)
+
     Surface(
         shape = RoundedCornerShape(28.dp),
         color = Color.White.copy(alpha = 0.94f),
@@ -384,7 +453,7 @@ private fun MoodShareRow(
                         .padding(start = 16.dp)
                 )
                 Text(
-                    text = "${share.percentage}%",
+                    text = "$percentageValue%",
                     style = MaterialTheme.typography.titleMedium,
                     color = share.mood.color
                 )
@@ -398,7 +467,7 @@ private fun MoodShareRow(
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(share.percentage / 100f)
+                        .fillMaxWidth(rowProgress.coerceIn(0f, 1f))
                         .height(10.dp)
                         .background(share.mood.color, RoundedCornerShape(999.dp))
                 )

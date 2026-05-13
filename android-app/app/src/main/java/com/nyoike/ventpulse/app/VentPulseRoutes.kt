@@ -31,3 +31,17 @@ data class VentWritingRoute(
 
 @Serializable
 data object ProfileRoute
+
+@Serializable
+data class ExpertCallRoute(
+    val expertId: String,
+    val displayName: String,
+    val role: String
+)
+
+@Serializable
+data class ExpertChatRoute(
+    val expertId: String,
+    val displayName: String,
+    val role: String
+)

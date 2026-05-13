@@ -68,7 +68,10 @@ class SupabaseCommunityPulseRepository(
                 }
                 .decodeList<MoodOnlyDto>()
             val counts = checkIns.groupingBy { it.mood }.eachCount()
-            counts.map { MoodSummaryDto(mood = it.key, count = it.value) }.toMoodShares()
+            if (counts.isEmpty()) return@runCatching fallbackMoodShares
+            counts.map { MoodSummaryDto(mood = it.key, count = it.value) }
+                .toMoodShares()
+                .withSeededDemoPulse()
         }.getOrDefault(fallbackMoodShares)
     }
 

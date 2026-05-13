@@ -1,5 +1,10 @@
 package com.nyoike.ventpulse.feature.community.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +26,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +41,7 @@ import com.nyoike.ventpulse.feature.communitypulse.presentation.CommunityPulseAc
 import com.nyoike.ventpulse.feature.communitypulse.presentation.CommunityPulseViewModel
 import com.nyoike.ventpulse.feature.coreflow.presentation.CoreFlowBackground
 import com.nyoike.ventpulse.feature.coreflow.presentation.SoftBottomNavigation
+import com.nyoike.ventpulse.feature.coreflow.presentation.WarmSkeletonCard
 import com.nyoike.ventpulse.feature.coreflow.presentation.color
 import com.nyoike.ventpulse.ui.theme.BrandPurple
 import org.koin.androidx.compose.koinViewModel
@@ -80,18 +89,17 @@ fun CommunityFeedRoot(
                     }
                 }
                 items(state.feed, key = { it.id }) { vent ->
-                    VentCard(
-                        vent = vent,
-                        onReact = { viewModel.onAction(CommunityPulseAction.ReactToVent(vent.id)) },
-                        onReport = { viewModel.onAction(CommunityPulseAction.ReportVent(vent.id)) }
-                    )
+                    FadeInCard {
+                        VentCard(
+                            vent = vent,
+                            onReact = { viewModel.onAction(CommunityPulseAction.ReactToVent(vent.id)) },
+                            onReport = { viewModel.onAction(CommunityPulseAction.ReportVent(vent.id)) }
+                        )
+                    }
                 }
                 if (state.isLoading && state.feed.isEmpty()) {
-                    item {
-                        GentleStateCard(
-                            title = "Gathering local feelings",
-                            body = "We are preparing the latest community pulse while keeping every voice anonymous."
-                        )
+                    items(3) {
+                        WarmSkeletonCard(showAvatar = true, rows = 4)
                     }
                 }
                 if (!state.isLoading && state.feed.isEmpty()) {
@@ -119,6 +127,24 @@ fun CommunityFeedRoot(
                     .padding(horizontal = 24.dp, vertical = 18.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun FadeInCard(content: @Composable () -> Unit) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        visible = true
+    }
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(durationMillis = 520, easing = FastOutSlowInEasing)) +
+            slideInVertically(
+                animationSpec = tween(durationMillis = 520, easing = FastOutSlowInEasing),
+                initialOffsetY = { it / 5 }
+            )
+    ) {
+        content()
     }
 }
 

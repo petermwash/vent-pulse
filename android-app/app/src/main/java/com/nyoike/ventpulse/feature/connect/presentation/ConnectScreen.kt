@@ -1,5 +1,11 @@
 package com.nyoike.ventpulse.feature.connect.presentation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -38,6 +45,7 @@ import com.nyoike.ventpulse.core.presentation.ObserveAsEvents
 import com.nyoike.ventpulse.feature.coreflow.presentation.CoreFlowBackground
 import com.nyoike.ventpulse.feature.coreflow.presentation.PrimaryPulseButton
 import com.nyoike.ventpulse.feature.coreflow.presentation.SoftBottomNavigation
+import com.nyoike.ventpulse.feature.coreflow.presentation.gentleBreathingFloat
 import com.nyoike.ventpulse.feature.matching.domain.ChatMessage
 import com.nyoike.ventpulse.feature.matching.presentation.MatchingAction
 import com.nyoike.ventpulse.feature.matching.presentation.MatchingEvent
@@ -122,7 +130,7 @@ private fun MatchingContent(
                 .padding(horizontal = 24.dp, vertical = 28.dp)
                 .padding(bottom = 104.dp)
         ) {
-            Spacer(modifier = Modifier.height(110.dp))
+            Spacer(modifier = Modifier.height(78.dp))
             Box(
                 modifier = Modifier.size(282.dp),
                 contentAlignment = Alignment.Center
@@ -158,14 +166,14 @@ private fun MatchingContent(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 14.dp)
             )
-            LoadingDots(modifier = Modifier.padding(top = 54.dp))
+            LoadingDots(modifier = Modifier.padding(top = 40.dp))
             state.message?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodyMedium,
                     color = BrandPurple,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 22.dp)
+                    modifier = Modifier.padding(top = 18.dp)
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -476,12 +484,36 @@ private fun LoadingDots(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier
     ) {
-        listOf(0.96f, 0.48f, 0.28f).forEach { alpha ->
+        listOf(0, 140, 280).forEachIndexed { index, delay ->
+            val transition = rememberInfiniteTransition(label = "matching dot $index")
+            val dotScale by transition.animateFloat(
+                initialValue = 0.72f,
+                targetValue = 1.18f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 760, delayMillis = delay, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "dot scale $index"
+            )
+            val dotAlpha by transition.animateFloat(
+                initialValue = 0.36f,
+                targetValue = 0.92f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 760, delayMillis = delay, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "dot alpha $index"
+            )
             Box(
                 modifier = Modifier
                     .size(18.dp)
+                    .graphicsLayer {
+                        scaleX = dotScale
+                        scaleY = dotScale
+                        translationY = -4f * (dotScale - 1f)
+                    }
                     .clip(CircleShape)
-                    .background(BrandPurple.copy(alpha = alpha))
+                    .background(BrandPurple.copy(alpha = dotAlpha))
             )
         }
     }
@@ -495,6 +527,12 @@ private fun MoodCircle(
 ) {
     Box(
         modifier = modifier
+            .gentleBreathingFloat(
+                amplitudeY = 6.dp,
+                scaleRange = 0.02f,
+                durationMillis = 3300,
+                delayMillis = if (emoji == "😌") 420 else 0
+            )
             .size(134.dp)
             .clip(CircleShape)
             .background(color.copy(alpha = 0.82f)),
