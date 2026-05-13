@@ -13,6 +13,8 @@ import com.nyoike.ventpulse.feature.community.presentation.CommunityRoot
 import com.nyoike.ventpulse.feature.connect.presentation.ConnectRoot
 import com.nyoike.ventpulse.feature.identity.presentation.LaunchDestination
 import com.nyoike.ventpulse.feature.onboarding.presentation.OnboardingRoot
+import com.nyoike.ventpulse.feature.profile.presentation.ExpertCallRoot
+import com.nyoike.ventpulse.feature.profile.presentation.ExpertChatRoot
 import com.nyoike.ventpulse.feature.profile.presentation.ProfileRoot
 import com.nyoike.ventpulse.feature.pulse.presentation.PulseRoot
 import com.nyoike.ventpulse.feature.safespace.presentation.VentWritingRoot
@@ -99,11 +101,70 @@ fun VentPulseApp() {
                         navController.navigate(PulseRoute) {
                             popUpTo<VentWritingRoute> { inclusive = true }
                         }
+                    },
+                    onSkip = {
+                        navController.navigate(PulseRoute) {
+                            popUpTo<VentWritingRoute> { inclusive = true }
+                        }
                     }
                 )
             }
             composable<ProfileRoute> {
-                ProfileRoot(onNavigate = onNavigate)
+                ProfileRoot(
+                    onNavigate = onNavigate,
+                    onExpertChat = { expert ->
+                        navController.navigate(
+                            ExpertChatRoute(
+                                expertId = expert.id,
+                                displayName = expert.displayName,
+                                role = expert.role
+                            )
+                        )
+                    },
+                    onExpertCall = { expert ->
+                        navController.navigate(
+                            ExpertCallRoute(
+                                expertId = expert.id,
+                                displayName = expert.displayName,
+                                role = expert.role
+                            )
+                        )
+                    }
+                )
+            }
+            composable<ExpertCallRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<ExpertCallRoute>()
+                ExpertCallRoot(
+                    displayName = route.displayName,
+                    role = route.role,
+                    onBack = { navController.popBackStack() },
+                    onOpenChat = {
+                        navController.navigate(
+                            ExpertChatRoute(
+                                expertId = route.expertId,
+                                displayName = route.displayName,
+                                role = route.role
+                            )
+                        )
+                    }
+                )
+            }
+            composable<ExpertChatRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<ExpertChatRoute>()
+                ExpertChatRoot(
+                    displayName = route.displayName,
+                    role = route.role,
+                    onBack = { navController.popBackStack() },
+                    onStartCall = {
+                        navController.navigate(
+                            ExpertCallRoute(
+                                expertId = route.expertId,
+                                displayName = route.displayName,
+                                role = route.role
+                            )
+                        )
+                    }
+                )
             }
         }
     }

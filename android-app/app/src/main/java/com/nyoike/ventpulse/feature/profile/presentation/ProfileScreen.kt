@@ -1,6 +1,12 @@
 package com.nyoike.ventpulse.feature.profile.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,6 +41,7 @@ import com.nyoike.ventpulse.feature.communitypulse.presentation.CommunityPulseAc
 import com.nyoike.ventpulse.feature.communitypulse.presentation.CommunityPulseViewModel
 import com.nyoike.ventpulse.feature.coreflow.presentation.CoreFlowBackground
 import com.nyoike.ventpulse.feature.coreflow.presentation.SoftBottomNavigation
+import com.nyoike.ventpulse.feature.coreflow.presentation.WarmSkeletonCard
 import com.nyoike.ventpulse.ui.theme.BrandPurple
 import com.nyoike.ventpulse.ui.theme.CalmMood
 import com.nyoike.ventpulse.ui.theme.MintCalm
@@ -40,6 +50,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun ProfileRoot(
     onNavigate: (String) -> Unit,
+    onExpertChat: (ExpertSupport) -> Unit,
+    onExpertCall: (ExpertSupport) -> Unit,
     viewModel: CommunityPulseViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -71,8 +83,19 @@ fun ProfileRoot(
                 )
                 AnonymousProfileCard(communityName = state.selectedCommunity?.name ?: "Your community")
                 CrisisSupportCard()
+                if (state.isLoading && state.experts.isEmpty()) {
+                    repeat(2) {
+                        WarmSkeletonCard(showAvatar = true, rows = 3)
+                    }
+                }
                 state.experts.forEach { expert ->
-                    ExpertCard(expert = expert)
+                    FadeInProfileCard {
+                        ExpertCard(
+                            expert = expert,
+                            onChat = { onExpertChat(expert) },
+                            onCall = { onExpertCall(expert) }
+                        )
+                    }
                 }
             }
             SoftBottomNavigation(
@@ -83,6 +106,24 @@ fun ProfileRoot(
                     .padding(horizontal = 24.dp, vertical = 18.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun FadeInProfileCard(content: @Composable () -> Unit) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        visible = true
+    }
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(durationMillis = 520, easing = FastOutSlowInEasing)) +
+            slideInVertically(
+                animationSpec = tween(durationMillis = 520, easing = FastOutSlowInEasing),
+                initialOffsetY = { it / 5 }
+            )
+    ) {
+        content()
     }
 }
 
@@ -171,7 +212,11 @@ private fun CrisisSupportCard() {
 }
 
 @Composable
-private fun ExpertCard(expert: ExpertSupport) {
+private fun ExpertCard(
+    expert: ExpertSupport,
+    onChat: () -> Unit,
+    onCall: () -> Unit
+) {
     Surface(
         shape = RoundedCornerShape(32.dp),
         color = Color.White.copy(alpha = 0.94f),
@@ -227,8 +272,8 @@ private fun ExpertCard(expert: ExpertSupport) {
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ExpertAction(text = "Chat", modifier = Modifier.weight(1f))
-                ExpertAction(text = "Video", modifier = Modifier.weight(1f))
+                ExpertAction(text = "Chat", onClick = onChat, modifier = Modifier.weight(1f))
+                ExpertAction(text = "Call", onClick = onCall, modifier = Modifier.weight(1f))
                 ExpertAction(text = "Plan", modifier = Modifier.weight(0.7f))
             }
         }
@@ -238,12 +283,19 @@ private fun ExpertCard(expert: ExpertSupport) {
 @Composable
 private fun ExpertAction(
     text: String,
+    onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = BrandPurple.copy(alpha = 0.08f),
-        modifier = modifier
+        modifier = modifier.then(
+            if (onClick != null) {
+                Modifier.clickable(onClick = onClick)
+            } else {
+                Modifier
+            }
+        )
     ) {
         Text(
             text = text,

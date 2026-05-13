@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nyoike.ventpulse.feature.coreflow.presentation.CoreFlowBackground
 import com.nyoike.ventpulse.feature.coreflow.presentation.PrimaryPulseButton
+import com.nyoike.ventpulse.feature.coreflow.presentation.gentleBreathingFloat
 import com.nyoike.ventpulse.ui.theme.BrandPurple
 import com.nyoike.ventpulse.ui.theme.MintCalm
 import org.koin.androidx.compose.koinViewModel
@@ -50,6 +51,7 @@ fun OnboardingRoot(
             Spacer(modifier = Modifier.height(70.dp))
             Box(
                 modifier = Modifier
+                    .gentleBreathingFloat(amplitudeY = 10.dp, scaleRange = 0.022f, durationMillis = 3600)
                     .size(238.dp)
                     .clip(CircleShape)
                     .background(page.color.copy(alpha = 0.76f)),

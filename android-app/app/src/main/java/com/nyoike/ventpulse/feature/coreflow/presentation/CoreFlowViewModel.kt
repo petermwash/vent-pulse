@@ -25,7 +25,7 @@ class CoreFlowViewModel(
     private val _state = MutableStateFlow(CoreFlowState())
     val state = _state.asStateFlow()
 
-    private val _events = Channel<CoreFlowEvent>()
+    private val _events = Channel<CoreFlowEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
     private var identity: AnonymousIdentity? = null
@@ -100,6 +100,12 @@ class CoreFlowViewModel(
                 sessionPreferences.saveMoodCheckInForToday()
             }
             _state.update { it.copy(isSaving = false, hasCheckedInToday = true) }
+            _events.send(
+                CoreFlowEvent.NavigateToVentWriting(
+                    moodId = _state.value.selectedMood.id,
+                    communityId = community.id
+                )
+            )
         }
     }
 

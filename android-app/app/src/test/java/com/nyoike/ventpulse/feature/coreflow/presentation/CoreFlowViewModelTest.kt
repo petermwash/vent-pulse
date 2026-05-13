@@ -35,15 +35,17 @@ class CoreFlowViewModelTest {
             testSessionPreferences()
         )
 
-        viewModel.onAction(CoreFlowAction.Load)
-        viewModel.onAction(CoreFlowAction.SelectCommunity(testCommunity))
-        viewModel.onAction(CoreFlowAction.SelectMood(Mood.LONELY))
-        advanceUntilIdle()
-        viewModel.onAction(CoreFlowAction.SaveMood)
+        viewModel.events.test {
+            viewModel.onAction(CoreFlowAction.Load)
+            viewModel.onAction(CoreFlowAction.SelectCommunity(testCommunity))
+            viewModel.onAction(CoreFlowAction.SelectMood(Mood.LONELY))
+            advanceUntilIdle()
+            viewModel.onAction(CoreFlowAction.SaveMood)
 
-        advanceUntilIdle()
-        assertEquals(Mood.LONELY, repository.savedMood)
-        assertEquals(testCommunity.id, repository.savedMoodCommunityId)
+            assertEquals(CoreFlowEvent.NavigateToVentWriting(Mood.LONELY.id, testCommunity.id), awaitItem())
+            assertEquals(Mood.LONELY, repository.savedMood)
+            assertEquals(testCommunity.id, repository.savedMoodCommunityId)
+        }
     }
 
     @Test

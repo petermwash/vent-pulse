@@ -33,6 +33,7 @@ import com.nyoike.ventpulse.feature.coreflow.presentation.CoreFlowAction
 import com.nyoike.ventpulse.feature.coreflow.presentation.CoreFlowBackground
 import com.nyoike.ventpulse.feature.coreflow.presentation.CoreFlowViewModel
 import com.nyoike.ventpulse.feature.coreflow.presentation.PrimaryPulseButton
+import com.nyoike.ventpulse.feature.coreflow.presentation.WarmSkeletonCard
 import com.nyoike.ventpulse.ui.theme.BrandPurple
 import com.nyoike.ventpulse.ui.theme.CalmMood
 import com.nyoike.ventpulse.ui.theme.MintCalm
@@ -83,17 +84,31 @@ private fun CommunityScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             CommunityMap(selectedCommunity = selectedCommunity)
-            SelectedCommunityCard(selectedCommunity = selectedCommunity)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
-            ) {
-                communities.forEach { community ->
-                    CommunityChip(
-                        community = community,
-                        selected = community.id == selectedCommunity?.id,
-                        onClick = { onSelectCommunity(community) }
-                    )
+            if (communities.isEmpty()) {
+                WarmSkeletonCard(rows = 3)
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    repeat(3) {
+                        Box(
+                            modifier = Modifier
+                                .size(width = 112.dp, height = 46.dp)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(Color.White.copy(alpha = 0.72f))
+                        )
+                    }
+                }
+            } else {
+                SelectedCommunityCard(selectedCommunity = selectedCommunity)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.horizontalScroll(rememberScrollState())
+                ) {
+                    communities.forEach { community ->
+                        CommunityChip(
+                            community = community,
+                            selected = community.id == selectedCommunity?.id,
+                            onClick = { onSelectCommunity(community) }
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
